@@ -68,6 +68,7 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
                                 current_team *= -1;
 
                                 if (is_checkmate(current_team)) {
+                                    UART_SendResult(current_team);
                                     animate_checkmate(r, c, current_team);
                                     state = STATE_GAME_OVER;
                                 } else {

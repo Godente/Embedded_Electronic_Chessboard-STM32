@@ -84,6 +84,18 @@ void UART_SendMove(uint8_t from_row, uint8_t from_col, uint8_t to_row, uint8_t t
     HAL_UART_Transmit(p_huart, (uint8_t*)san, strlen(san), HAL_MAX_DELAY);
 }
 
+void UART_SendResult(int8_t mated_team) {
+    if (p_huart == NULL) return;
+
+    if (mated_team == 1) { 
+        // Il Nero (1) è sotto matto -> Vince il Bianco
+        HAL_UART_Transmit(p_huart, (uint8_t*)"1-0\r\n", 5, HAL_MAX_DELAY);
+    } else if (mated_team == -1) { 
+        // Il Bianco (-1) è sotto matto -> Vince il Nero
+        HAL_UART_Transmit(p_huart, (uint8_t*)"0-1\r\n", 5, HAL_MAX_DELAY);
+    }
+}
+
 // Controlla se è arrivata una mossa via UART dal PC
 bool UART_ReceiveMove(uint8_t move[4]) {
     if (move_ready) {

@@ -305,56 +305,62 @@ bool is_castling(uint8_t * move, int8_t team) {
 }
 
 bool is_checkmate(int8_t team) {
-    // Controlla se il re è in scacco
+    // Se il giocatore non è sotto scacco, non può essere scacco matto
     if (!is_check(team)) return false;
 
-    // Prova a muovere ogni pezzo del team per vedere se può uscire dallo scacco
+    // Scansiona tutta la scacchiera alla ricerca dei pezzi del giocatore di turno
     for (uint8_t row = 0; row < 8; row++) {
         for (uint8_t col = 0; col < 8; col++) {
             uint8_t piece = board[row * 8 + col];
-            if(piece_team(piece) != team || piece == EMPTY) continue; // Salta i vuoi e i pezzi dell'altro team
             
-            // Genera tutte le mosse legali per questo pezzo
-            switch (piece_type(piece)) {
-                case 0: legal_moves_pawn(row, col, team);   break;
-                case 1: legal_moves_knight(row, col, team); break;
-                case 2: legal_moves_bishop(row, col, team); break;
-                case 3: legal_moves_rook(row, col, team);   break;
-                case 4: legal_moves_queen(row, col, team);  break;
-                case 5: legal_moves_king(row, col, team);   break;
-                default: continue;
-            }
-            //Prova ogni mossa legale
+            if (piece == EMPTY || piece_team(piece) != team) continue;
+
+            // `legal_moves` azzera automaticamente l'array legal_move[64] prima di riempirlo
+            legal_moves(row, col);
+
+            // Verifica se almeno una mossa generata salva il Re dallo scacco
             for (uint8_t r = 0; r < 8; r++) {
                 for (uint8_t c = 0; c < 8; c++) {
-                    if(!legal_move[r * 8 + c]) continue; // Salta le mosse illegali
+                    if (!legal_move[r * 8 + c]) continue;
 
-                    uint8_t captured = board[r * 8 + c]; // Salva il pezzo catturato
-                    uint8_t move[4] = {row, col, r, c}; // Mossa da provare
-                    uint8_t temp_piece = board[row * 8 + col]; // Salva il pezzo da muovere
-                    // Esegui la mossa
-                    move_piece(move);
-                    // Controlla se il re è ancora in scacco dopo la mossa
-                    bool still_in_check = is_check(team);
-                    // Ripristina lo stato del gioco
-                    board[row * 8 + col] = temp_piece; // Ripristina il pezzo
-                    board[r * 8 + c] = captured; // Ripristina il pezzo catturato
-                    // Ripristina le coordinate del re
-                    if(piece_type(temp_piece) == 5) { 
-                        if(team == -1) { 
-                            white_king_row = row;
-                            white_king_col = col;
-                        } else if(team == 1) { 
-                            black_king_row = row;
-                            black_king_col = col;
-                        }
+                    // Salva lo stato della casella di destinazione e di partenza
+                    uint8_t captured = board[r * 8 + c];
+                    uint8_t temp_piece = board[row * 8 + col];
+
+                    // Esegue la mossa simulata
+                    board[r * 8 + c] = temp_piece;
+                    board[row * 8 + col] = EMPTY;
+
+                    // Se ha mosso il Re, aggiorna temporaneamente le coordinate del Re
+                    uint8_t old_k_row = (team == -1) ? white_king_row : black_king_row;
+                    uint8_t old_k_col = (team == -1) ? white_king_col : black_king_col;
+                    if (piece_type(temp_piece) == 5) {
+                        if (team == -1) { white_king_row = r; white_king_col = c; }
+                        else { black_king_row = r; black_king_col = c; }
                     }
-                    if(!still_in_check) return false;
+
+                    // Verifica se il Re è ancora sotto scacco dopo la mossa
+                    bool still_in_check = is_check(team);
+
+                    // Annulla la mossa simulata e ripristina la scacchiera
+                    board[row * 8 + col] = temp_piece;
+                    board[r * 8 + c] = captured;
+                    if (piece_type(temp_piece) == 5) {
+                        if (team == -1) { white_king_row = old_k_row; white_king_col = old_k_col; }
+                        else { black_king_row = old_k_row; black_king_col = old_k_col; }
+                    }
+
+                    // Se la mossa annulla lo scacco (es. 16... Nxb8), NON è scacco matto!
+                    if (!still_in_check) {
+                        return false; 
+                    }
                 }
             }
         }
     }
-    return true; //è scacco matto
+
+    // Nessuna mossa valida salva il Re: è Scacco Matto reale!
+    return true;
 }
 
 bool is_piece_pin(uint8_t *move, int8_t team) {
