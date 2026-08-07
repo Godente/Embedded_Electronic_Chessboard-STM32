@@ -22,7 +22,8 @@ void GameController_Init(GameMode_t mode) {
     current_team = -1;
     state = STATE_SELECT_PIECE;
 
-    UART_SendMessage("--- Chessboard Ready ---\r\n");
+    UART_ResetGame();
+    UART_SendMessage("--- CheeseBreadboard Ready ---\r\n");
     display_team_pieces(current_team);
 }
 

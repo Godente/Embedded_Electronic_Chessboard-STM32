@@ -7,6 +7,7 @@
 
 // Inizializzazione della comunicazione
 void UART_Init(UART_HandleTypeDef *huart);
+void UART_ResetGame(void);
 // Invio notazione e messaggi
 void UART_SendMove(uint8_t from_row, uint8_t from_col, uint8_t to_row, uint8_t to_col);
 void UART_SendMessage(const char *msg);
