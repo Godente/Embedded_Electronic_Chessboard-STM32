@@ -50,6 +50,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/LedMatrix.c
     Core/Src/UartComm.c
     Core/Src/GameMode.c
+    Core/Src/PgnParser.c
+    Core/Src/PgnData.c
 )
 
 # Add include paths

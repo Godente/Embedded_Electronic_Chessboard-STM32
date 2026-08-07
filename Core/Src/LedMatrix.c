@@ -146,6 +146,16 @@ void display_mode_icon(uint8_t mode) {
     HAL_Delay(1200); // Mantiene la scritta visibile per 1200ms
 }
 
+// Illumina una singola casella della scacchiera
+void display_single_square(uint8_t row, uint8_t col) {
+    for (uint8_t r = 0; r < 8; r++) {
+        uint8_t row_data = (r == row) ? (1 << col) : 0;
+        uint8_t hw_byte = map_logical_to_LED(row_data);
+        uint8_t target_row = INVERT_ROWS ? (7 - r) : r;
+        MAX7219_write(target_row + 1, hw_byte);
+    }
+}
+
 void animate_checkmate(uint8_t to_r, uint8_t to_c, int8_t mated_team) {
     uint8_t king_r = (mated_team == -1) ? white_king_row : black_king_row;
     uint8_t king_c = (mated_team == -1) ? white_king_col : black_king_col;
