@@ -18,12 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "Board.h"
-#include "Rules.h"
-#include "Move.h"
 #include "LedMatrix.h"
-
-#include <stdlib.h>
+#include "UartComm.h"
+#include "GameMode.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -50,12 +47,7 @@ SPI_HandleTypeDef hspi1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-// Stati del flusso di gioco
-typedef enum {
-    STATE_SELECT_PIECE,
-    STATE_SELECT_DESTINATION,
-    STATE_GAME_OVER
-} GameState_t;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -154,18 +146,13 @@ int main(void)
   MAX7219_setall(0);
   HAL_Delay(200);
 
-  // Inizializza la scacchiera
-  initialize_board();
+  UART_Init(&huart2);
 
-  int8_t current_team = -1; // -1 = Bianco, 1 = Nero
-  GameState_t state = STATE_SELECT_PIECE;
+  // Avvia il Controller in modalità Umano vs Umano (o MODE_STUDY_PGN / MODE_VS_PC)
+  GameController_Init(MODE_HUMAN_VS_HUMAN);
 
   uint8_t prev_phys_board[8] = {0};
   uint8_t curr_phys_board[8] = {0};
-
-  uint8_t from_row = 0, from_col = 0;
-
-  display_team_pieces(current_team);
 
   /* USER CODE END 2 */
 
@@ -173,76 +160,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      scan_chessboard(curr_phys_board);
+  scan_chessboard(curr_phys_board);
 
-      // Aggiornamento dinamico del display nella fase di selezione destinazione (per far lampeggiare i LED di cattura)
-      if (state == STATE_SELECT_DESTINATION) {
-          display_legal_moves_on_LED(from_row, from_col);
-      }
+      // Gestione di tutta la logica di gioco e comunicazione
+      GameController_Process(curr_phys_board, prev_phys_board);
 
-      // Rilevamento pressione pulsante (fronte di salita 0->1)
       for (uint8_t r = 0; r < 8; r++) {
-        uint8_t pressed_bits = (~prev_phys_board[r] & curr_phys_board[r]);
-
-        if(pressed_bits != 0) {
-          for (uint8_t c = 0; c < 8; c++){
-            if (pressed_bits & (1 << c)) {
-
-                // --- SELEZIONE PEZZO DA MUOVERE ---
-                if (state == STATE_SELECT_PIECE) {
-                  uint8_t piece = board[r * 8 + c];
-
-                  // Verificare appartenenza pezzo al giocatore
-                  if (piece != EMPTY && piece_team(piece) == current_team) {
-                    from_row = r;
-                    from_col = c;
-
-                    // Calcola mosse legali per il pezzo selezionato
-                    legal_moves(from_row, from_col);
-
-                    // Mostra le mosse legali sul display LED (con lampeggio catture)
-                    display_legal_moves_on_LED(from_row, from_col);
-
-                    state = STATE_SELECT_DESTINATION;
-                  }
-                }
-                // --- SELEZIONE CASELLA DI DESTINAZIONE ---
-                else if (state == STATE_SELECT_DESTINATION) {
-
-                  // Nel caso di riclicco sulla stessa casella (annullamento)
-                  if (from_row == r && from_col == c) {
-                    display_team_pieces(current_team);
-                    state = STATE_SELECT_PIECE;
-                  }
-                  // Nel caso di selezione di una casella legale
-                  else if (legal_move[r * 8 + c]) {
-                    uint8_t move[4] = {from_row, from_col, r, c};
-                    move_piece(move);
-                    
-                    current_team *= -1; // Cambia turno
-
-                    // Controlla se il nuovo giocatore di turno è sotto Scacco Matto
-                    if (is_checkmate(current_team)) {
-                        animate_checkmate(r, c, current_team);
-                        state = STATE_GAME_OVER;
-                    } else {
-                        display_team_pieces(current_team);
-                        state = STATE_SELECT_PIECE;
-                    }
-                  }
-                // Selezione casella non legale: ignora e resta nello stato corrente
-                }
-            }
-          }
-        }
+          prev_phys_board[r] = curr_phys_board[r];
       }
 
-      // Aggiorna lo stato precedente della matrice di pulsanti
-      for (uint8_t r = 0; r < 8; r++) {
-        prev_phys_board[r] = curr_phys_board[r];
-      }
-
-      HAL_Delay(30); // Frequenza di aggiornamento a 33 Hz per la fluidità del lampeggio
+      HAL_Delay(30);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
