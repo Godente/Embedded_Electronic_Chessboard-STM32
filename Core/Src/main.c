@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : Main program body with Enhanced Checkmate Animations
+  * @brief          : Main program body
   ******************************************************************************
   * @attention
   *
@@ -21,6 +21,7 @@
 #include "Board.h"
 #include "Rules.h"
 #include "Move.h"
+#include "LedMatrix.h"
 
 #include <stdlib.h>
 
@@ -68,58 +69,6 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-// === IMPOSTAZIONI DI ORIENTAMENTO HARDWARE ===
-#define INVERT_ROWS    1   // Imposta a 1 per scambiare Alto/Basso (Bianchi/Neri)
-#define INVERT_COLS    0   // Imposta a 1 per scambiare Destra/Sinistra (Re/Regina)
-
-// Mappatura colonne fisiche MAX7219 (da Colonna A [bit 0] a Colonna H [bit 7])
-const uint8_t LED_COL_MASK[8] = {
-    0x40, // Col A (bit 0) -> SEG A
-    0x20, // Col B (bit 1) -> SEG B
-    0x10, // Col C (bit 2) -> SEG C
-    0x08, // Col D (bit 3) -> SEG D
-    0x04, // Col E (bit 4) -> SEG E
-    0x02, // Col F (bit 5) -> SEG F
-    0x01, // Col G (bit 6) -> SEG G
-    0x80  // Col H (bit 7) -> SEG DP
-};
-
-// Trasmette un comando (indirizzo + dato) al chip MAX7219 via SPI
-void MAX7219_write(uint8_t address, uint8_t data) {
-    uint8_t txData[2] = {address, data};
-    HAL_GPIO_WritePin(MAX7219_CS_GPIO_Port, MAX7219_CS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(&hspi1, txData, 2, HAL_MAX_DELAY);
-    HAL_GPIO_WritePin(MAX7219_CS_GPIO_Port, MAX7219_CS_Pin, GPIO_PIN_SET);
-}
-
-// Inizializza i registri interni del MAX7219
-void MAX7219_init(void) {
-    MAX7219_write(0x09, 0x00); // Decode mode OFF (controllo LED diretto)
-    MAX7219_write(0x0A, 0x03); // Intensità luminosa media/bassa
-    MAX7219_write(0x0B, 0x07); // Scansiona tutte le 8 righe (0-7)
-    MAX7219_write(0x0C, 0x01); // Normal Operation (Esce da shutdown)
-    MAX7219_write(0x0F, 0x00); // Display Test OFF
-}
-
-// Imposta lo stato di tutti i 64 LED (1 = tutti accesi, 0 = tutti spenti)
-void MAX7219_setall(uint8_t state) {
-    uint8_t val = (state != 0) ? 0xFF : 0x00;
-    for (uint8_t i = 1; i <= 8; i++) {
-        MAX7219_write(i, val);
-    }
-}
-
-// Converte un byte logico (bit 0=Col A ... bit 7=Col H) nel byte fisico richiesto dal MAX7219
-uint8_t map_logical_to_LED(uint8_t logical_byte) {
-    uint8_t hw_byte = 0;
-    for (uint8_t col = 0; col < 8; col++) {
-        if (logical_byte & (1 << col)) {
-            uint8_t target_col = INVERT_COLS ? (7 - col) : col;
-            hw_byte |= LED_COL_MASK[target_col];
-        }
-    }
-    return hw_byte;
-}
 
 // Scansiona la matrice di pulsanti (PC0..PC7 = Righe, PB0..PB7 = Colonne)
 uint8_t scan_chessboard(uint8_t boardState[8]) {
@@ -163,157 +112,6 @@ uint8_t scan_chessboard(uint8_t boardState[8]) {
     }
 
     return anyPressed;
-}
-
-// Illumina i LED di tutte le caselle che contengono i pezzi del giocatore di turno
-void display_team_pieces(int8_t team) {
-    for (uint8_t r = 0; r < 8; r++) {
-        uint8_t logical_row_byte = 0;
-        for (uint8_t c = 0; c < 8; c++) {
-            uint8_t piece = board[r * 8 + c];
-            if (piece != EMPTY && piece_team(piece) == team) {
-                logical_row_byte |= (1 << c);
-            }
-        }
-        uint8_t hw_led_byte = map_logical_to_LED(logical_row_byte);
-        uint8_t target_display_row = INVERT_ROWS ? (7 - r) : r;
-        MAX7219_write(target_display_row + 1, hw_led_byte);
-    }
-}
-
-// Illumina le mosse legali. Se una mossa permette la CATTURA, il relativo LED LAMPEGGIA!
-void display_legal_moves_on_LED(uint8_t f_r, uint8_t f_c) {
-    // Stato di lampeggio basato sul timer di sistema HAL (toggle ogni 200ms)
-    uint8_t blink_on = (HAL_GetTick() / 200) % 2;
-
-    for (uint8_t r = 0; r < 8; r++) {
-        uint8_t logical_row_byte = 0;
-        for (uint8_t c = 0; c < 8; c++) {
-            if (legal_move[r * 8 + c]) {
-                uint8_t target_piece = board[r * 8 + c];
-                uint8_t source_piece = board[f_r * 8 + f_c];
-
-                // Verifica se la mossa è una cattura standard o en-passant
-                bool is_capture = (target_piece != EMPTY && piece_team(target_piece) != piece_team(source_piece)) ||
-                                  (piece_type(source_piece) == 6 && r == en_passant_row && c == en_passant_col);
-
-                if (is_capture) {
-                    if (blink_on) {
-                        logical_row_byte |= (1 << c);
-                    }
-                } else {
-                    logical_row_byte |= (1 << c);
-                }
-            }
-        }
-        uint8_t hw_led_byte = map_logical_to_LED(logical_row_byte);
-        uint8_t target_display_row = INVERT_ROWS ? (7 - r) : r;
-        MAX7219_write(target_display_row + 1, hw_led_byte);
-    }
-}
-
-// Sequenza Estesa e Coreografica di Scacco Matto
-void animate_checkmate(uint8_t to_r, uint8_t to_c, int8_t mated_team) {
-    // Coordinate del Re sconfitto
-    uint8_t king_r = (mated_team == -1) ? white_king_row : black_king_row;
-    uint8_t king_c = (mated_team == -1) ? white_king_col : black_king_col;
-
-    // --- FASE 1: Lampeggio Alternato Prolungato (4 secondi) ---
-    for (int i = 0; i < 15; i++) {
-        MAX7219_setall(0);
-        if (i % 2 == 0) {
-            uint8_t disp_r = INVERT_ROWS ? (7 - to_r) : to_r;
-            MAX7219_write(disp_r + 1, map_logical_to_LED(1 << to_c));
-        } else {
-            uint8_t disp_r = INVERT_ROWS ? (7 - king_r) : king_r;
-            MAX7219_write(disp_r + 1, map_logical_to_LED(1 << king_c));
-        }
-        HAL_Delay(200);
-    }
-
-    // --- FASE 2: Effetto Scia / Raggio d'Attacco (dall'attaccante al Re) ---
-    int8_t dr = 0, dc = 0;
-    if (king_r > to_r) dr = 1;
-    else if (king_r < to_r) dr = -1;
-
-    if (king_c > to_c) dc = 1;
-    else if (king_c < to_c) dc = -1;
-
-    // Ripeti il lancio del raggio luminoso per 3 volte
-    for (int loop = 0; loop < 1; loop++) {
-        MAX7219_setall(0);
-        uint8_t curr_r = to_r;
-        uint8_t curr_c = to_c;
-
-        while (1) {
-            uint8_t disp_r = INVERT_ROWS ? (7 - curr_r) : curr_r;
-            MAX7219_write(disp_r + 1, map_logical_to_LED(1 << curr_c));
-            HAL_Delay(100);
-
-            if (curr_r == king_r && curr_c == king_c) break;
-
-            if (curr_r != king_r) curr_r += dr;
-            if (curr_c != king_c) curr_c += dc;
-        }
-        HAL_Delay(150);
-    }
-
-    // --- FASE 3: Esplosione del Re Prolungata (2 cicli di onde concentriche) ---
-    for (int pass = 0; pass < 2; pass++) {
-        for (int radius = 0; radius <= 7; radius++) {
-            MAX7219_setall(0);
-            for (uint8_t r = 0; r < 8; r++) {
-                uint8_t logical_row = 0;
-                for (uint8_t c = 0; c < 8; c++) {
-                    int dist_r = abs((int)r - (int)king_r);
-                    int dist_c = abs((int)c - (int)king_c);
-                    int dist = (dist_r > dist_c) ? dist_r : dist_c;
-
-                    if (dist == radius) {
-                        logical_row |= (1 << c);
-                    }
-                }
-                if (logical_row != 0) {
-                    uint8_t disp_r = INVERT_ROWS ? (7 - r) : r;
-                    MAX7219_write(disp_r + 1, map_logical_to_LED(logical_row));
-                }
-            }
-            HAL_Delay(140);
-        }
-    }
-
-    HAL_Delay(250);
-
-    // --- FASE 4: Cascata della Vittoria (scorre verso il vincitore) ---
-    int start_r = (mated_team == 1) ? 0 : 7;
-    int end_r   = (mated_team == 1) ? 7 : 0;
-    int step    = (start_r < end_r) ? 1 : -1;
-
-    uint8_t cascade_board[8] = {0};
-
-    // Ondata 1: Si riempie verso la parte del vincitore
-    for (int r = start_r; ; r += step) {
-        cascade_board[r] = 0xFF;
-        for (uint8_t row = 0; row < 8; row++) {
-            uint8_t disp_r = INVERT_ROWS ? (7 - row) : row;
-            MAX7219_write(disp_r + 1, map_logical_to_LED(cascade_board[row]));
-        }
-        HAL_Delay(80);
-        if (r == end_r) break;
-    }
-
-    HAL_Delay(300);
-
-    // Ondata 2: Si svuota verso la parte del vincitore
-    for (int r = start_r; ; r += step) {
-        cascade_board[r] = 0x00;
-        for (uint8_t row = 0; row < 8; row++) {
-            uint8_t disp_r = INVERT_ROWS ? (7 - row) : row;
-            MAX7219_write(disp_r + 1, map_logical_to_LED(cascade_board[row]));
-        }
-        HAL_Delay(80);
-        if (r == end_r) break;
-    }
 }
 
 /* USER CODE END 0 */

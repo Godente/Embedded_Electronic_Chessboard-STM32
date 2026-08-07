@@ -47,6 +47,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/Board.c
     Core/Src/Move.c
     Core/Src/Rules.c
+    Core/Src/LedMatrix.c
 )
 
 # Add include paths
