@@ -26,12 +26,17 @@ static uint32_t last_button_press = 0;    // Anti-rimbalzo pulsante B1
 static uint8_t study_target_move[4] = {0};
 static bool study_move_active = false;
 
+// === VARIABILI PER MODALITÀ VS PC ===
+static bool pc_waiting_physical_move = false;
+static uint8_t pc_move[4] = {0};
+
 void GameController_Init(GameMode_t mode) {
     current_mode = mode;
     initialize_board();
     current_team = -1;
     state = STATE_SELECT_PIECE;
     move_made = false;
+    pc_waiting_physical_move = false;
 
     UART_ResetGame();
     UART_SendMessage("--- CheeseBreadboard Ready ---\r\n");
@@ -47,8 +52,7 @@ void GameController_Init(GameMode_t mode) {
 }
 
 void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[8]) {
-    uint8_t uart_move[4];
-
+    
     // === 1. GESTIONE PULSANTE B1 (CAMBIO MODALITÀ PRIMA DELLA 1a MOSSA) ===
     if (!move_made) {
         if (HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin) == GPIO_PIN_RESET) {
@@ -61,10 +65,11 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
                 // Mostra la scritta sulla matrice LED ("1 1", "ST", "PC")
                 display_mode_icon(current_mode);
 
-                // Se la modalità diventa Studio, inizializza il parser PGN
                 if (current_mode == MODE_STUDY_PGN) {
                     PGN_Init(CURRENT_STUDY_PGN);
                     study_move_active = PGN_GetNextMove(study_target_move, current_team);
+                } else if (current_mode == MODE_VS_PC) {
+                    pc_waiting_physical_move = false;
                 }
 
                 display_team_pieces(current_team);
@@ -128,35 +133,28 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
 
     // === 3. MODALITÀ STUDIO (Guida interattiva PGN) ===
     else if (current_mode == MODE_STUDY_PGN) {
-        static bool castling_rook_phase = false; // true quando l'utente deve muovere la Torre
+        static bool castling_rook_phase = false;
         static uint8_t rook_move[4] = {0};
 
         if (study_move_active) {
-            
-            // Determinazione coordinate correnti (Re o Torre se siamo in fase arrocco)
             uint8_t cur_from_r = castling_rook_phase ? rook_move[0] : study_target_move[0];
             uint8_t cur_from_c = castling_rook_phase ? rook_move[1] : study_target_move[1];
             uint8_t cur_to_r   = castling_rook_phase ? rook_move[2] : study_target_move[2];
             uint8_t cur_to_c   = castling_rook_phase ? rook_move[3] : study_target_move[3];
 
-            // 1. ILLUMINAZIONE LED
             if (state == STATE_SELECT_PIECE) {
-                // Illumina il pezzo da sollevare (Re o Torre)
                 display_single_square(cur_from_r, cur_from_c);
             } 
             else if (state == STATE_SELECT_DESTINATION) {
-                // Illumina la casella di destinazione
                 display_single_square(cur_to_r, cur_to_c);
             }
 
-            // 2. SCANSIONE PULSANTI FISICI
             for (uint8_t r = 0; r < 8; r++) {
                 uint8_t pressed_bits = (~prev_phys_board[r] & curr_phys_board[r]);
                 if (pressed_bits != 0) {
                     for (uint8_t c = 0; c < 8; c++) {
                         if (pressed_bits & (1 << c)) {
 
-                            // FASE 1: L'utente solleva/seleziona il pezzo indicato
                             if (state == STATE_SELECT_PIECE) {
                                 if (r == cur_from_r && c == cur_from_c) {
                                     from_row = r;
@@ -164,44 +162,36 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
                                     state = STATE_SELECT_DESTINATION;
                                 }
                             } 
-                            // FASE 2: L'utente posiziona il pezzo sulla destinazione
                             else if (state == STATE_SELECT_DESTINATION) {
                                 if (r == cur_to_r && c == cur_to_c) {
-                                    
-                                    // Se stavamo muovendo il RE e la mossa è un ARROCCO
                                     uint8_t piece = board[study_target_move[0] * 8 + study_target_move[1]];
                                     bool is_castling = (!castling_rook_phase && 
                                                         piece_type(piece) == 5 && 
                                                         abs((int)study_target_move[1] - (int)study_target_move[3]) == 2);
 
                                     if (is_castling) {
-                                        // 1. Esegui subito lo spostamento software (che sposta sia Re che Torre nel codice)
                                         move_piece(study_target_move);
 
-                                        // 2. Calcola le coordinate della Torre per la guida fisica
-                                        rook_move[0] = study_target_move[0]; // Stessa riga del Re
+                                        rook_move[0] = study_target_move[0];
                                         rook_move[2] = study_target_move[0];
 
                                         if (study_target_move[3] == 6) { // Arrocco Corto
-                                            rook_move[1] = 7; // Torre da h -> f
+                                            rook_move[1] = 7;
                                             rook_move[3] = 5;
                                         } else { // Arrocco Lungo
-                                            rook_move[1] = 0; // Torre da a -> d
+                                            rook_move[1] = 0;
                                             rook_move[3] = 3;
                                         }
 
-                                        // 3. Attiva la fase guidata per la Torre
                                         castling_rook_phase = true;
-                                        state = STATE_SELECT_PIECE; // Ora richiede di sollevare la Torre
+                                        state = STATE_SELECT_PIECE;
                                     } 
                                     else {
-                                        // Mossa normale oppure completamento della Fase Torre dell'arrocco
                                         if (!castling_rook_phase) {
                                             UART_SendMove(study_target_move[0], study_target_move[1], 
                                                           study_target_move[2], study_target_move[3]);
                                             move_piece(study_target_move);
                                         } else {
-                                            // Fase Torre completata!
                                             UART_SendMove(study_target_move[0], study_target_move[1], 
                                                           study_target_move[2], study_target_move[3]);
                                             castling_rook_phase = false;
@@ -216,14 +206,12 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
                                             state = STATE_GAME_OVER;
                                             study_move_active = false;
                                         } else {
-                                            // Passa alla mossa successiva del PGN
                                             study_move_active = PGN_GetNextMove(study_target_move, current_team);
                                             state = STATE_SELECT_PIECE;
                                         }
                                     }
                                 } 
                                 else if (r == from_row && c == from_col) {
-                                    // Annulla la selezione
                                     state = STATE_SELECT_PIECE;
                                 }
                             }
@@ -234,9 +222,11 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
         }
     }
 
-    // === 4. MODALITÀ GIOCATORE VS PC ===
+   // === 4. MODALITÀ GIOCATORE VS PC (Con Validazione Mosse PC) ===
     else if (current_mode == MODE_VS_PC) {
-        if (current_team == -1) { // Turno Umano
+
+        // --- TURNO UMANO (BIANCO) ---
+        if (current_team == -1) {
             if (state == STATE_SELECT_DESTINATION) {
                 display_legal_moves_on_LED(from_row, from_col);
             }
@@ -270,7 +260,8 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
                                     uint8_t move[4] = {from_row, from_col, r, c};
                                     move_piece(move);
 
-                                    current_team = 1; // Passa al PC
+                                    current_team = 1; // Passa al PC (Nero)
+                                    pc_waiting_physical_move = false;
 
                                     if (is_checkmate(current_team)) {
                                         UART_SendResult(current_team);
@@ -287,19 +278,86 @@ void GameController_Process(uint8_t curr_phys_board[8], uint8_t prev_phys_board[
                 }
             }
         } 
-        else if (current_team == 1) { // Turno PC (via UART)
-            if (UART_ReceiveMove(uart_move)) {
-                move_made = true;
-                move_piece(uart_move);
-                current_team = -1;
-                display_team_pieces(current_team);
+        
+        // --- TURNO PC (NERO) ---
+        else if (current_team == 1) {
+            
+            // FASE A: Attesa e VALIDAZIONE della mossa ricevuta via UART
+            if (!pc_waiting_physical_move) {
+                uint8_t temp_move[4];
+                if (UART_ReceiveMove(temp_move)) {
+                    
+                    uint8_t f_r = temp_move[0];
+                    uint8_t f_c = temp_move[1];
+                    uint8_t t_r = temp_move[2];
+                    uint8_t t_c = temp_move[3];
 
-                if (is_checkmate(current_team)) {
-                    UART_SendResult(current_team);
-                    animate_checkmate(uart_move[2], uart_move[3], current_team);
-                    state = STATE_GAME_OVER;
-                } else {
-                    state = STATE_SELECT_PIECE;
+                    uint8_t piece = board[f_r * 8 + f_c];
+
+                    // 1. Verifica che nella casella di partenza ci sia un pezzo del PC (Nero = 1)
+                    if (piece != EMPTY && piece_team(piece) == current_team) {
+                        
+                        // 2. Calcola le mosse legali per quel pezzo
+                        legal_moves(f_r, f_c);
+
+                        // 3. Verifica se la destinazione è tra le mosse legali
+                        if (legal_move[t_r * 8 + t_c]) {
+                            pc_move[0] = f_r;
+                            pc_move[1] = f_c;
+                            pc_move[2] = t_r;
+                            pc_move[3] = t_c;
+
+                            pc_waiting_physical_move = true; // Mossa valida!
+                            state = STATE_SELECT_PIECE;
+                        } else {
+                            UART_SendMessage("ERR: Mossa illegale per questo pezzo!\r\n");
+                        }
+                    } else {
+                        UART_SendMessage("ERR: Nessun pezzo del Nero nella casella indicata!\r\n");
+                    }
+                }
+            } 
+            
+            // FASE B: Guida LED per far eseguire la mossa (valida) del PC all'utente
+            else {
+                if (state == STATE_SELECT_PIECE) {
+                    display_single_square(pc_move[0], pc_move[1]);
+                } else if (state == STATE_SELECT_DESTINATION) {
+                    display_single_square(pc_move[2], pc_move[3]);
+                }
+
+                for (uint8_t r = 0; r < 8; r++) {
+                    uint8_t pressed_bits = (~prev_phys_board[r] & curr_phys_board[r]);
+                    if (pressed_bits != 0) {
+                        for (uint8_t c = 0; c < 8; c++) {
+                            if (pressed_bits & (1 << c)) {
+
+                                if (state == STATE_SELECT_PIECE) {
+                                    if (r == pc_move[0] && c == pc_move[1]) {
+                                        from_row = r;
+                                        from_col = c;
+                                        state = STATE_SELECT_DESTINATION;
+                                    }
+                                } 
+                                else if (state == STATE_SELECT_DESTINATION) {
+                                    if (r == pc_move[2] && c == pc_move[3]) {
+                                        move_piece(pc_move);
+                                        current_team = -1; // Torna all'Umano
+                                        pc_waiting_physical_move = false;
+
+                                        if (is_checkmate(current_team)) {
+                                            UART_SendResult(current_team);
+                                            animate_checkmate(r, c, current_team);
+                                            state = STATE_GAME_OVER;
+                                        } else {
+                                            display_team_pieces(current_team);
+                                            state = STATE_SELECT_PIECE;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
