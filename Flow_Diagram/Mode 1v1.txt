@@ -1,0 +1,39 @@
+flowchart TD
+    Start([INIZIO: Mode 1v1 Locale]) --> Init["Inizializzazione Board\n\n (Stato = SELECT_PIECE, Turno = Bianco)"]
+    Init --> DisplayTeam[/LED: Mostra pezzi del team corrente/]
+    
+    DisplayTeam --> WaitInput[/Scansione Matrice Sensori/]
+    WaitInput --> PressCheck{"Pressione rilevata su casella (r,c)?"}
+    
+    PressCheck -- No --> WaitInput
+    PressCheck -- Si --> StateCheck{Stato corrente?}
+    
+    %% FASE 1: SELEZIONE PEZZO
+    StateCheck -- Selezione di un pezzo?\n (Stato = SELECT_PIECE ?) --> PieceCheck{"Pezzo in (r,c) appartiene al Turno corrente?"}
+    PieceCheck -- No --> WaitInput
+    PieceCheck -- Si --> SaveFrom["Salviamo la posizione \n\n (from_row = r, from_col = c)"]
+    SaveFrom --> CalcLegal["Calcola le mosse legali del pezzo nella casella (r,c)"]
+    CalcLegal --> DisplayLegal[/LED: Accendi mosse legali /]
+    DisplayLegal --> SetDestState[Stato = SELECT_DESTINATION]
+    SetDestState --> WaitInput
+
+    %% FASE 2: SELEZIONE DESTINAZIONE
+    StateCheck -- Selezione della destinazione? \n(Stato = SELECT_DESTINATION ?) --> SameSquare{"La casella di destinazione coincide con quella di partenza?\n\n (r == from_row AND c == from_col ?)"}
+    SameSquare -- Si (Deselezione) --> ClearLED[/LED: Spegni mosse legali/]
+    ClearLED --> SetPieceState[Stato = SELECT_PIECE]
+    SetPieceState --> WaitInput
+    
+    SameSquare -- No --> LegalCheck{"La mossa è leggittima? \n\n (legal_move[r * 8 + c] == TRUE?)"}
+    LegalCheck -- No (Mossa Illegale) --> WaitInput
+    LegalCheck -- Si (Mossa Valida) --> ExecMove["Esegui \n (move_piece from -> to)"]
+    
+    ExecMove --> SendUART[/UART TX: Invia mossa SAN/]
+    SendUART --> SwitchTurn[Cambia Turno: Bianco <-> Nero]
+    SwitchTurn --> CheckmateCheck{"È scacco matto per l'utente che sta per iniziare il turno? \n\n(is_checkmate Turno == TRUE?)"}
+    
+    CheckmateCheck -- Si --> SendRes[/UART TX: Invia 1-0 o 0-1/]
+    SendRes --> AnimateWin[/LED: Animazione Scacco Matto/]
+    AnimateWin --> GameOver([STATO: GAME OVER])
+    
+    CheckmateCheck -- No --> ResetState[Stato = SELECT_PIECE]
+    ResetState --> DisplayTeam

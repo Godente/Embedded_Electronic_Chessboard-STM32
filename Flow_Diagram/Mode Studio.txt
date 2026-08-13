@@ -1,0 +1,37 @@
+---
+config:
+  layout: dagre
+  theme: default
+---
+flowchart TB
+    Start(["INIZIO: Mode Studio PGN"]) --> Init["Inizializza Studio PGN (PGN_Init) \n Carica prima mossa (PGN_GetNextMove)"]
+    Init --> CheckActive{"Esiste una mossa da eseguire?"}
+    CheckActive -- No --> GameOver(["FINE STUDIO"])
+    CheckActive -- Si --> CheckRookPhase{"Fase Arrocco:<br>Spostamento Torre?"}
+    CheckRookPhase -- Si --> TargetRook["Target: Coordinate della Torre"]
+    CheckRookPhase -- No --> TargetNormal["Target: Coordinate mossa PGN"]
+    TargetRook --> LEDGuide{"Fase della mossa?"}
+    TargetNormal --> LEDGuide
+    LEDGuide -- Selezione Origine --> LEDFrom[/"LED: Accendi casella Origine"/]
+    LEDGuide -- Selezione Destinazione --> LEDTo[/"LED: Accendi casella Destinazione"/]
+    LEDFrom --> WaitInput[/"Scan Sensori Scacchiera"/]
+    LEDTo --> WaitInput
+    WaitInput --> PressCheck{"Rilevata pressione su casella?"}
+    PressCheck -- No --> WaitInput
+    PressCheck -- Si --> TouchType{"Quale casella è stata toccata?"}
+    TouchType -- "[Fase Origine]\nOrigine Corretta" --> SetDestPhase["Passa a Fase Destinazione"]
+    SetDestPhase --> CheckActive
+    TouchType -- "[Fase Destinazione] \n Origine di nuovo" --> Cancel["Annulla selezione: Torna a Fase Origine"]
+    Cancel --> CheckActive
+    TouchType -- "[Fase Destinazione] \n Destinazione Corretta" --> CheckCastling{"La mossa è un Arrocco<br>ed è il turno del Re?"}
+    CheckCastling -- Si --> ExecKing["Muovi Re (move_piece) \n Attiva fase guidata per la Torre"]
+    ExecKing --> CheckActive
+    CheckCastling -- No --> ExecMove["Applica mossa sulla scacchiera (move_piece) <br>Trasmetti dati via UART (UART_SendMove)"]
+    ExecMove --> CheckmateCheck{"Verifica Scacco Matto<br>(is_checkmate?)"}
+    CheckmateCheck -- Si --> WinAnim[/"LED: Animazione Scacco Matto<br>Invia esito finale via UART"/]
+    WinAnim --> GameOver
+    CheckmateCheck -- No --> FetchNext["Carica mossa successiva PGN_GetNextMove"]
+    FetchNext --> CheckActive
+
+    style Start fill:#ECECFF
+    style GameOver fill:#ECECFF

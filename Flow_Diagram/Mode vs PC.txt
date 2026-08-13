@@ -1,0 +1,50 @@
+flowchart TD
+    Start([INIZIO: Mode vs PC]) --> Init["Inizializzazione Partita vs PC\n I pezzi bianchi sono assegnati all'umano \n (current_team = Bianco, pc_waiting_physical_move = FALSE)"]
+    
+    Init --> TurnCheck{Di chi è il turno?}
+    
+    %% ================= TURNO UMANO (BIANCO) =================
+    TurnCheck -- Bianco (Umano) --> HumanLogic["Gestione Turno Umano\n (FSM 1v1)\n1. Selezione pezzo e calcolo mosse legali\n2. Selezione destinazione e muovi il pezzo\n3. Trasmissione mossa UART_SendMove"]
+    
+    HumanLogic --> HumanCheckmate{"È scacco matto per il PC?\n (is_checkmate[current_team])"}
+    HumanCheckmate -- Si --> WinHuman[/UART TX: Invia responso\nLED: Animazione scacco matto/] --> GameOver([STATO: GAME OVER])
+    
+    HumanCheckmate -- No --> SetPCTurn["Cambio Turno:\n (current_team = Nero)\n(pc_waiting_physical_move = FALSE)"] --> TurnCheck
+
+    %% ================= TURNO PC (NERO) =================
+    TurnCheck -- Nero (PC) --> PCStateCheck{"Il PC ha immesso la mossa? (pc_waiting_physical_move == TRUE )"}
+    
+    %% FASE A: ATTESA E VALIDAZIONE MOSSA UART
+    PCStateCheck -- No (Attesa Mossa PC) --> ReadUART["Lettura Seriale \n (UART_ReceiveMove)"]
+    ReadUART --> MoveReceived{Mossa ricevuta via UART?}
+    MoveReceived -- No --> ReadUART
+    
+    MoveReceived -- Si --> ValidatePiece{"Il pezzo in origine\nè del PC (Nero)?"}
+    ValidatePiece -- No --> Err1[/UART TX: ERR Nessun pezzo Nero/] --> ReadUART
+    
+    ValidatePiece -- Si --> CalcLegPC["Calcola mosse legali\n (legal_moves[f_r, f_c])"]
+    CalcLegPC --> ValidateDest{"La destinazione è\nuna mossa legale?"}
+    ValidateDest -- No --> Err2[/UART TX: ERR Mossa illegale/] --> ReadUART
+    
+    ValidateDest -- Si --> ConfirmPC["Effettua mossa (pc_move)\n(pc_waiting_physical_move = TRUE)\n(state = SELECT_PIECE)"] --> TurnCheck
+
+    %% FASE B: GUIDA LED ED ESECUZIONE FISICA
+    PCStateCheck -- Si (Guida LED Mossa PC) --> LEDState{state corrente?}
+    LEDState -- Selezione di un pezzo?\n (Stato = SELECT_PIECE) --> LEDFromPC[/LED: Accendi casella Origine/]
+    LEDState -- Selezione della destinazione? \n(Stato = SELECT_DESTINATION) --> LEDToPC[/LED: Accendi casella Destinazione/]
+    
+    LEDFromPC --> ScanPC[/Scansione Matrice Sensori/]
+    LEDToPC --> ScanPC
+    
+    ScanPC --> PressPC{Pressione rilevata?}
+    PressPC -- No --> ScanPC
+    
+    PressPC -- Si --> TouchStatePC{Quale fase del tocco?}
+    
+    TouchStatePC -- Fase di Origine --> SetDestPC[state = SELECT_DESTINATION] --> TurnCheck
+    
+    TouchStatePC -- Fase di Destinazione --> ExecPC["Aggiorna scacchiera in memoria \n(move_piece)\n(pc_waiting_physical_move = FALSE)\n Cambio turno\n(current_team = Bianco)"]
+    
+    ExecPC --> PCCheckmate{"È scacco matto per l'Umano?\n(is_checkmate[Bianco])"}
+    PCCheckmate -- Si --> WinPC[/UART TX: Invio responso\nLED: animazione Scacco Matto/] --> GameOver
+    PCCheckmate -- No --> ResetHuman[state = SELECT_PIECE] --> TurnCheck
