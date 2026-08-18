@@ -19,7 +19,6 @@
 #define black_king    11
 #define black_pawn    12
 
-//RICORDA che queste sotto sono var. globali
 char board[64];
 
 bool legal_move[64]; //utile per il controllo led

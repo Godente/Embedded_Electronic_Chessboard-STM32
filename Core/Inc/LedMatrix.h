@@ -26,7 +26,6 @@ void display_mode_icon(uint8_t mode);
 // Illumina una singola casella della scacchiera
 void display_single_square(uint8_t row, uint8_t col);
 
-
 void animate_checkmate(uint8_t to_r, uint8_t to_c, int8_t mated_team);
 
 #endif /* LED_MATRIX_H */
