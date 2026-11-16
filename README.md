@@ -1,47 +1,67 @@
-```markdown
-# ♟️ Cheese&Breadboard – Embedded Electronic Chessboard
+<div align="center">
 
-![Microcontroller](https://img.shields.io/badge/MCU-STM32_Nucleo--F401RE-03234B?style=flat-square&logo=stmicroelectronics)
-![Language](https://img.shields.io/badge/Language-C-A8B9CC?style=flat-square&logo=c)
-![Peripherals](https://img.shields.io/badge/Interfaces-SPI%20%7C%20UART%20%7C%20GPIO-blue?style=flat-square)
-![Docs](https://img.shields.io/badge/Docs-Italian-green?style=flat-square)
+# ♟️ Cheese&Breadboard
+### Embedded Electronic Chessboard
 
-**Cheese&Breadboard** is an embedded electronic chessboard built from scratch on an **STM32 Nucleo-F401RE** (ARM Cortex-M4) microcontroller. Written entirely in **C**, the system combines physical piece detection, LED visual feedback, an on-board FIDE-compliant chess engine, and interrupt-driven PC communication.
+**A physical chessboard that senses every move, validates the game, and guides players with LEDs.**
 
----
+![STM32 Nucleo-F401RE](https://img.shields.io/badge/MCU-STM32_Nucleo--F401RE-03234B?style=for-the-badge&logo=stmicroelectronics&logoColor=white)
+![Language C](https://img.shields.io/badge/Language-C-A8B9CC?style=for-the-badge&logo=c&logoColor=white)
+![SPI · UART · GPIO](https://img.shields.io/badge/Interfaces-SPI%20%7C%20UART%20%7C%20GPIO-6B8E23?style=for-the-badge)
+![Documentation in Italian](https://img.shields.io/badge/Docs-Italian-9B5DE5?style=for-the-badge)
 
-## ✨ Key Features
+[Features](#-features) · [Modes](#-play-modes) · [Hardware](#-hardware) · [Repository](#-repository)
 
-* **8×8 Pressure Sensor Matrix:** Real-time piece detection utilizing non-blocking software *debouncing* for reliable state transitions.
-* **Visual Move Guidance:** **SPI**-driven 8×8 LED matrix controlled via a **MAX7219** driver to highlight selected pieces, legal moves, captures, and check states.
-* **On-Board FIDE Chess Engine:** Full rule validation written in C, supporting special moves (castling, *en passant*, pawn promotion) as well as check and checkmate detection.
-* **Embedded PGN Parser:** Decodes *Portable Game Notation* (PGN) files directly on the MCU to guide users step-by-step through classic games.
-* **Interrupt-Driven UART:** Asynchronous serial communication with a host PC for board visualization, debugging, and human-vs-engine gameplay.
-
-## 🎮 Operating Modes
-
-1. **Local 1v1:** Over-the-board play between two human players with real-time rule enforcement and valid-move LED hints.
-2. **PGN Study Mode:** Interactive game replay where LEDs indicate the next move from a loaded PGN match.
-3. **Player vs. PC:** Play against a desktop chess engine over the UART serial interface.
+</div>
 
 ---
 
-## 🛠️ Hardware Architecture
+## ♟️ About the project
+
+**Cheese&Breadboard** is an embedded electronic chessboard built from scratch around the **STM32 Nucleo-F401RE** (ARM Cortex-M4). Written entirely in **C**, it combines a pressure-sensor board, LED move guidance, an on-board chess engine, and UART communication with a PC.
+
+> 🧠 **The idea:** play on a real board while the firmware takes care of move validation and visual feedback.
+
+## ✨ Features
+
+|  | Feature | What it does |
+|:--:|---|---|
+| 🎯 | **Piece detection** | An 8×8 pressure-sensor matrix detects piece positions in real time, with non-blocking software debouncing. |
+| 💡 | **LED move guidance** | An 8×8 LED matrix, driven by a MAX7219 over SPI, highlights selected pieces, legal moves, captures, and check states. |
+| ♜ | **Chess rules** | The on-board engine validates moves and supports castling, *en passant*, pawn promotion, check, and checkmate detection. |
+| 📖 | **PGN study** | An embedded parser reads Portable Game Notation (PGN) games on the MCU and guides players through them. |
+| 🔌 | **PC connection** | Interrupt-driven UART enables board visualization, debugging, and human-vs-engine gameplay. |
+
+## 🎮 Play modes
+
+| Mode | Description |
+|---|---|
+| **Local 1v1** | Two players play over the board with real-time rule enforcement and LED hints for valid moves. |
+| **PGN Study** | Replay a loaded game move by move, with LEDs indicating the next move. |
+| **Player vs. PC** | Play against a desktop chess engine through the UART serial interface. |
+
+## 🛠️ Hardware
 
 | Component | Role | Interface |
-| :--- | :--- | :--- |
+|---|---|---|
 | **STM32 Nucleo-F401RE** | Main MCU (ARM Cortex-M4) | — |
-| **8×8 Pressure Sensor Matrix** | Piece position sensing (64 squares) | GPIO (Row/Column scanning) |
-| **MAX7219 + 8×8 LED Matrix** | Visual feedback for legal moves & alerts | SPI |
-| **USB / ST-LINK** | Power, flashing, and PC communication | UART (Interrupt-driven) |
+| **8×8 pressure-sensor matrix** | Detects piece positions on all 64 squares | GPIO · row/column scanning |
+| **MAX7219 + 8×8 LED matrix** | Displays move guidance and alerts | SPI |
+| **USB / ST-LINK** | Power, flashing, and PC communication | UART · interrupt-driven |
 
----
-
-## 📂 Repository Structure
+## 📂 Repository
 
 ```text
-├── firmware/           # C source code, peripheral drivers, and chess engine
+.
+├── firmware/           # C source, peripheral drivers, and chess engine
 ├── docs/
-│   ├── relazione.pdf   # Full technical report (in Italian)
-│   └── slide.pdf       # Project presentation slides (in Italian)
+│   ├── relazione.pdf   # Technical report (Italian)
+│   └── slide.pdf       # Project presentation (Italian)
 └── README.md
+```
+
+<div align="center">
+
+**Built with ♟️, C, and a lot of breadboard wiring.**
+
+</div>
