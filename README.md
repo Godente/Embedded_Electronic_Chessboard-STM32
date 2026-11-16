@@ -1,22 +1,25 @@
-```markdown
 # ♟️ Cheese&Breadboard – Embedded Electronic Chessboard
 
 ![Microcontroller](https://img.shields.io/badge/MCU-STM32_Nucleo--F401RE-03234B?style=flat-square&logo=stmicroelectronics)
 ![Language](https://img.shields.io/badge/Language-C-A8B9CC?style=flat-square&logo=c)
 ![Peripherals](https://img.shields.io/badge/Interfaces-SPI%20%7C%20UART%20%7C%20GPIO-blue?style=flat-square)
-![Docs](https://img.shields.io/badge/Docs-Italian-green?style=flat-square)
+![Docs Language](https://img.shields.io/badge/Docs_%26_Slides-Italian_🇮🇹-green?style=flat-square)
 
 **Cheese&Breadboard** is an embedded electronic chessboard built from scratch on an **STM32 Nucleo-F401RE** (ARM Cortex-M4) microcontroller. Written entirely in **C**, the system combines physical piece detection, LED visual feedback, an on-board FIDE-compliant chess engine, and interrupt-driven PC communication.
+
+> **Language Note:** This repository overview is in English, while the attached technical report, presentation slides, and inline firmware comments are written in **Italian** 🇮🇹.
 
 ---
 
 ## ✨ Key Features
 
-* **8×8 Pressure Sensor Matrix:** Real-time piece detection utilizing non-blocking software *debouncing* for reliable state transitions.
-* **Visual Move Guidance:** **SPI**-driven 8×8 LED matrix controlled via a **MAX7219** driver to highlight selected pieces, legal moves, captures, and check states.
+* **8×8 Pressure Sensor Matrix:** Real-time piece detection utilizing non-blocking software *debouncing* for reliable state transitions across all 64 squares.
+* **Visual Move Guidance:** **SPI**-driven 8×8 LED matrix controlled via a **MAX7219** driver to highlight selected pieces, valid moves, captures, and check states.
 * **On-Board FIDE Chess Engine:** Full rule validation written in C, supporting special moves (castling, *en passant*, pawn promotion) as well as check and checkmate detection.
 * **Embedded PGN Parser:** Decodes *Portable Game Notation* (PGN) files directly on the MCU to guide users step-by-step through classic games.
 * **Interrupt-Driven UART:** Asynchronous serial communication with a host PC for board visualization, debugging, and human-vs-engine gameplay.
+
+---
 
 ## 🎮 Operating Modes
 
@@ -40,8 +43,8 @@
 ## 📂 Repository Structure
 
 ```text
-├── firmware/           # C source code, peripheral drivers, and chess engine
+├── firmware/           # C source code, peripheral drivers & chess engine (comments in IT 🇮🇹)
 ├── docs/
-│   ├── relazione.pdf   # Full technical report (in Italian)
-│   └── slide.pdf       # Project presentation slides (in Italian)
-└── README.md
+│   ├── relazione.pdf   # Full technical report (in Italian 🇮🇹)
+│   └── slide.pdf       # Project presentation slides (in Italian 🇮🇹)
+└── README.md           # Project overview (in English 🇬🇧)
