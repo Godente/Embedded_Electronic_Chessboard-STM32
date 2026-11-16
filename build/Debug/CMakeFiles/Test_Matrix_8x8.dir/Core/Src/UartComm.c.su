@@ -1,0 +1,7 @@
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/UartComm.c:19:6:UART_Init	16	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/UartComm.c:31:6:UART_ResetGame	4	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/UartComm.c:35:6:UART_SendMessage	24	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/UartComm.c:40:6:UART_SendMove	96	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/UartComm.c:119:6:UART_SendResult	16	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/UartComm.c:131:6:UART_ReceiveMove	24	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/UartComm.c:165:6:HAL_UART_RxCpltCallback	16	static

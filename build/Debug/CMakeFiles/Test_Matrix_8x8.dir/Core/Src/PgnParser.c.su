@@ -1,0 +1,4 @@
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/PgnParser.c:11:6:PGN_Init	16	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/PgnParser.c:19:13:PGN_NextToken	32	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/PgnParser.c:90:13:SAN_To_Move	48	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/PgnParser.c:175:6:PGN_GetNextMove	32	static

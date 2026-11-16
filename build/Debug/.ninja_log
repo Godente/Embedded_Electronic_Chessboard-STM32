@@ -1,0 +1,37 @@
+# ninja log v7
+18	299	8105637723380456	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/sysmem.c.obj	ac8a2b01874019a
+26	236	8105637723465740	CMakeFiles/Test_Matrix_8x8.dir/startup_stm32f401xe.s.obj	d80979a8d21bf24a
+80	334	8105637724009885	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/PgnData.c.obj	57633ac15a59e39c
+32	378	8105637723532594	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/Board.c.obj	1a3c3ab63f6fe9e4
+22	486	8105637723425649	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/syscalls.c.obj	3e543752d6d3188d
+37	447	8105637723584838	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/Move.c.obj	f41205465d0159b9
+7	469	8105637723274972	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/stm32f4xx_it.c.obj	8f7b08638614c460
+12	477	8105637723330123	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/stm32f4xx_hal_msp.c.obj	5b40a6d2783db31f
+44	589	8105637723650006	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/Rules.c.obj	d3b12bd5b30c941c
+3	530	8105637723229788	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/main.c.obj	12822a0e2fefafa2
+57	837	8105637723775707	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/UartComm.c.obj	a0668b3e293f65f1
+72	907	8105637723929537	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/PgnParser.c.obj	333eb7c7ca463a11
+50	892	8105637723710437	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/LedMatrix.c.obj	fea21a4c3686df36
+65	900	8105637723859216	CMakeFiles/Test_Matrix_8x8.dir/Core/Src/GameMode.c.obj	6d91017c93ac7cd
+236	1068	8105637725569216	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32f4xx.c.obj	2eb22ff85e9995a
+378	1100	8105637726996862	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c.obj	64b5c03cfed30c8d
+447	1256	8105637727683686	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c.obj	b902c6e6b70a7481
+469	1211	8105637727900727	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c.obj	c9eaad79c784ea2e
+335	1082	8105637726553849	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c.obj	9f25a586e431ef08
+299	1255	8105637726206437	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c.obj	4b6bf6d150c69eb6
+477	1156	8105637727975904	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c.obj	d320bc660f98f144
+487	1167	8105637728074295	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c.obj	4a3ff48a2ca40aec
+530	1261	8105637728506022	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c.obj	3e16e5b68c8c63b1
+589	1286	8105637729103348	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c.obj	33811151467169f6
+892	1351	8105637732128406	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c.obj	8b9f86eb4603b21d
+837	1344	8105637731580641	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c.obj	2ad94bc69d34925
+908	1382	8105637732280780	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c.obj	b163e5c852848a3c
+900	1373	8105637732203872	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c.obj	a42f275f9c13d436
+1068	1447	8105637733888998	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c.obj	61ef75c5719631fc
+1082	1535	8105637734034867	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c.obj	29d91739a28dede0
+1535	1770	8105637738556823	Test_Matrix_8x8.elf	96ce9b2f9f10dec4
+88	900	8106653092763866	build.ninja	f2db7087c924c9ef
+88	900	8106653092445359	C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/build/Debug/cmake_install.cmake	f2db7087c924c9ef
+88	900	8106653092602373	C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/build/Debug/cmake/stm32cubemx/cmake_install.cmake	f2db7087c924c9ef
+2	33	8105637720897696	CMakeFiles/clean.additional	1a4608a5911078e3
+33	55	8105637721206074	clean	1d79d611af67d795

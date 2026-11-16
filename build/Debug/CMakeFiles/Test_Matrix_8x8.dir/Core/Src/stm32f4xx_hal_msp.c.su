@@ -1,0 +1,5 @@
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/stm32f4xx_hal_msp.c:62:6:HAL_MspInit	16	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/stm32f4xx_hal_msp.c:85:6:HAL_SPI_MspInit	48	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/stm32f4xx_hal_msp.c:122:6:HAL_SPI_MspDeInit	16	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/stm32f4xx_hal_msp.c:151:6:HAL_UART_MspInit	48	static
+C:/Users/ilSur/Documents/Magistrale/Sistemi prog/Codici_STM32/E-CheeseBread_Board/Core/Src/stm32f4xx_hal_msp.c:191:6:HAL_UART_MspDeInit	16	static
