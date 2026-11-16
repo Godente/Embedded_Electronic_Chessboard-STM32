@@ -5,6 +5,10 @@
 
 **A physical chessboard that senses every move, validates the game, and guides players with LEDs.**
 
+<p align="center">
+  <img src="Chess_1.jpg" alt="Cheese&Breadboard electronic chessboard" width="900">
+</p>
+
 ![STM32 Nucleo-F401RE](https://img.shields.io/badge/MCU-STM32_Nucleo--F401RE-03234B?style=for-the-badge&logo=stmicroelectronics&logoColor=white)
 ![Language C](https://img.shields.io/badge/Language-C-A8B9CC?style=for-the-badge&logo=c&logoColor=white)
 ![SPI · UART · GPIO](https://img.shields.io/badge/Interfaces-SPI%20%7C%20UART%20%7C%20GPIO-6B8E23?style=for-the-badge)
@@ -42,8 +46,8 @@
 
 ## 🛠️ Hardware
 
-| Component | Role | Interface |
-|---|---|---|
+| | Component | Role | Interface |
+|---|---|---|---|
 | **STM32 Nucleo-F401RE** | Main MCU (ARM Cortex-M4) | — |
 | **8×8 pressure-sensor matrix** | Detects piece positions on all 64 squares | GPIO · row/column scanning |
 | **MAX7219 + 8×8 LED matrix** | Displays move guidance and alerts | SPI |
