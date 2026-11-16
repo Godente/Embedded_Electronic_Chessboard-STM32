@@ -6,7 +6,7 @@
 **A physical chessboard that senses every move, validates the game, and guides players with LEDs.**
 
 <p align="center">
-  <img src="Chess_1.jpg" alt="Cheese&Breadboard electronic chessboard" width="900">
+  <img src="Chess_1.jpg" alt="Cheese&Breadboard electronic chessboard" width="400">
 </p>
 
 ![STM32 Nucleo-F401RE](https://img.shields.io/badge/MCU-STM32_Nucleo--F401RE-03234B?style=for-the-badge&logo=stmicroelectronics&logoColor=white)
